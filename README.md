@@ -38,7 +38,7 @@ It makes collaboration easier with role-based dashboards, task discovery, and AI
 
 ### 2) Clone the repository
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Ms-923/skillbridge.git
 cd skillbridge
 ```
 
