@@ -1,9 +1,9 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { User } from './models/User.ts';
-import { Task } from './models/Task.ts';
-import { connectToDatabase, getDatabaseStatus } from './db.ts';
+import { User } from './models/User';
+import { Task } from './models/Task';
+import { connectToDatabase, getDatabaseStatus } from './db';
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';

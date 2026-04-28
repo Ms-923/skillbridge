@@ -2,8 +2,8 @@ import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import dotenv from 'dotenv';
-import app from './server/app.ts';
-import { connectToDatabase } from './server/db.ts';
+import app from './server/app';
+import { connectToDatabase } from './server/db';
 
 dotenv.config();
 
