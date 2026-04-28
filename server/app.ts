@@ -221,6 +221,20 @@ app.post('/api/tasks/:id/complete', authenticateToken, async (req: any, res) => 
   }
 });
 
+app.delete('/api/tasks/:id', authenticateToken, async (req: any, res) => {
+  if (req.user.role !== 'Organization') return res.sendStatus(403);
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task || task.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    await task.deleteOne();
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const users = await User.find({ role: 'Contributor' })

@@ -4,7 +4,7 @@ import { Button } from '@/src/components/ui/Button';
 import { Input } from '@/src/components/ui/Input';
 import { apiFetch } from '@/src/services/api';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { Plus, Users, CheckCircle, Clock, Search } from 'lucide-react';
+import { Plus, Users, CheckCircle, Clock, Search, Trash2 } from 'lucide-react';
 import { generateTask, enhanceDescription } from '@/src/services/gemini';
 
 const OrganizationDashboard = () => {
@@ -14,6 +14,7 @@ const OrganizationDashboard = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [approvingApplicantId, setApprovingApplicantId] = useState<string | null>(null);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [goal, setGoal] = useState('');
   const { user } = useAuth();
 
@@ -102,6 +103,21 @@ const OrganizationDashboard = () => {
       alert(err.message);
     } finally {
       setApprovingApplicantId(null);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      setDeletingTaskId(taskId);
+      await apiFetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+      if (selectedTaskId === taskId) {
+        setSelectedTaskId(null);
+      }
+      fetchMyTasks();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setDeletingTaskId(null);
     }
   };
 
@@ -228,9 +244,18 @@ const OrganizationDashboard = () => {
                       await apiFetch(`/api/tasks/${task._id}/complete`, { method: 'POST' });
                       fetchMyTasks();
                     }} className="bg-green-400 text-black h-10 text-xs px-4">
-                      {task.status === 'Submitted' ? 'Confirm Completion' : 'Mark Completed'}
+                      {task.status === 'Submitted' ? 'Mark Done' : 'Mark Done'}
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    className="h-10 px-4 py-0 text-xs text-red-600"
+                    onClick={() => handleDeleteTask(task._id)}
+                    disabled={deletingTaskId === task._id}
+                  >
+                    <Trash2 size={14} className="mr-2" />
+                    {deletingTaskId === task._id ? 'Deleting...' : 'Delete'}
+                  </Button>
                 </div>
               </div>
 

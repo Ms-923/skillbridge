@@ -303,6 +303,19 @@ export default async function handler(req: any, res: any) {
       return sendJson(res, 200, task);
     }
 
+    const deleteMatch = pathname.match(/^\/api\/tasks\/([^/]+)$/);
+    if (deleteMatch && method === 'DELETE') {
+      const auth = getTokenPayload(req, jwt);
+      if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
+      if (auth.role !== 'Organization') return sendJson(res, 403, { error: 'Forbidden' });
+      const task = await Task.findById(deleteMatch[1]);
+      if (!task || task.createdBy.toString() !== auth.id) {
+        return sendJson(res, 403, { error: 'Not authorized' });
+      }
+      await task.deleteOne();
+      return sendJson(res, 200, { success: true });
+    }
+
     return sendJson(res, 404, { error: `API route ${method} ${pathname} not found` });
   } catch (error: any) {
     console.error('API handler error:', error);
