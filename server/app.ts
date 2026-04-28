@@ -103,7 +103,10 @@ app.put('/api/users/profile', authenticateToken, async (req: any, res) => {
 
 app.get('/api/tasks', async (req, res) => {
   try {
-    const tasks = await Task.find({ status: 'Open' }).populate('createdBy', 'name');
+    const tasks = await Task.find({ status: 'Open' })
+      .populate('createdBy', 'name')
+      .populate('applicants', 'name email skills availability')
+      .populate('assignedTo', 'name email');
     res.json(tasks);
   } catch (err: any) {
     res.status(400).json({ error: err.message });

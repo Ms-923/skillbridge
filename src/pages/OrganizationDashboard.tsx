@@ -12,6 +12,8 @@ const OrganizationDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [approvingApplicantId, setApprovingApplicantId] = useState<string | null>(null);
   const [goal, setGoal] = useState('');
   const { user } = useAuth();
 
@@ -87,6 +89,19 @@ const OrganizationDashboard = () => {
       console.error(err);
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const handleApproveApplicant = async (taskId: string, applicantId: string) => {
+    try {
+      setApprovingApplicantId(applicantId);
+      await apiFetch(`/api/tasks/${taskId}/approve/${applicantId}`, { method: 'POST' });
+      setSelectedTaskId(null);
+      fetchMyTasks();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setApprovingApplicantId(null);
     }
   };
 
@@ -193,7 +208,13 @@ const OrganizationDashboard = () => {
                    <Users size={16} /> {task.applicants?.length || 0} Applicants
                 </div>
                 {task.status === 'Open' ? (
-                   <Button variant="outline" className="h-10 text-xs px-4">Review Applicants</Button>
+                   <Button
+                     variant="outline"
+                     className="h-10 text-xs px-4"
+                     onClick={() => setSelectedTaskId(selectedTaskId === task._id ? null : task._id)}
+                   >
+                     {selectedTaskId === task._id ? 'Hide Applicants' : 'Review Applicants'}
+                   </Button>
                 ) : (
                   <Button onClick={async () => {
                     await apiFetch(`/api/tasks/${task._id}/complete`, { method: 'POST' });
@@ -201,6 +222,66 @@ const OrganizationDashboard = () => {
                   }} className="bg-green-400 text-black h-10 text-xs px-4">Mark Completed</Button>
                 )}
               </div>
+
+              {selectedTaskId === task._id && task.status === 'Open' && (
+                <div className="space-y-4 border-t-2 border-black pt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="text-sm font-black uppercase tracking-wide">Applicants</h4>
+                    <span className="rounded-full border-2 border-black bg-yellow-200 px-3 py-1 text-[10px] font-black uppercase">
+                      {task.applicants?.length || 0} total
+                    </span>
+                  </div>
+
+                  {task.applicants?.length ? (
+                    <div className="space-y-3">
+                      {task.applicants.map((applicant: any) => (
+                        <div
+                          key={applicant._id || applicant}
+                          className="rounded-2xl border-2 border-black bg-gray-50 p-4"
+                        >
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="space-y-2">
+                              <div>
+                                <p className="text-base font-black uppercase">{applicant.name || 'Applicant'}</p>
+                                {applicant.email && (
+                                  <p className="text-xs font-bold text-gray-500">{applicant.email}</p>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {applicant.skills?.length ? applicant.skills.map((skill: string) => (
+                                  <span
+                                    key={skill}
+                                    className="border border-black bg-white px-2 py-1 text-[10px] font-black uppercase"
+                                  >
+                                    {skill}
+                                  </span>
+                                )) : (
+                                  <span className="text-xs font-bold italic text-gray-400">No skills added yet</span>
+                                )}
+                              </div>
+                              {typeof applicant.availability === 'number' && (
+                                <p className="text-xs font-bold uppercase text-gray-600">
+                                  Availability: {applicant.availability} hrs/week
+                                </p>
+                              )}
+                            </div>
+
+                            <Button
+                              className="h-10 w-full bg-blue-500 px-4 py-0 text-xs sm:w-auto"
+                              onClick={() => handleApproveApplicant(task._id, applicant._id)}
+                              disabled={approvingApplicantId === applicant._id}
+                            >
+                              {approvingApplicantId === applicant._id ? 'Approving...' : 'Approve Applicant'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-bold italic text-gray-400">No applicants yet for this task.</p>
+                  )}
+                </div>
+              )}
             </Card>
           ))}
           {tasks.length === 0 && <p className="font-bold italic">No tasks posted yet.</p>}

@@ -195,7 +195,10 @@ export default async function handler(req: any, res: any) {
     }
 
     if (pathname === '/api/tasks' && method === 'GET') {
-      const tasks = await Task.find({ status: 'Open' }).populate('createdBy', 'name');
+      const tasks = await Task.find({ status: 'Open' })
+        .populate('createdBy', 'name')
+        .populate('applicants', 'name email skills availability')
+        .populate('assignedTo', 'name email');
       return sendJson(res, 200, tasks);
     }
 
