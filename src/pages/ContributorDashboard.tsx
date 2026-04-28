@@ -13,6 +13,7 @@ const ContributorDashboard = () => {
   const [recycling, setRecycling] = useState<string[]>([]);
   const [allTasks, setAllTasks] = useState<any[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [submittingTaskId, setSubmittingTaskId] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -44,6 +45,18 @@ const ContributorDashboard = () => {
       console.error(err);
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const handleSubmitTask = async (taskId: string) => {
+    try {
+      setSubmittingTaskId(taskId);
+      await apiFetch(`/api/tasks/${taskId}/submit`, { method: 'POST' });
+      fetchDashboardData();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSubmittingTaskId(null);
     }
   };
 
@@ -168,7 +181,7 @@ const ContributorDashboard = () => {
              const isApproved = assignedId === user?.id;
 
              return (
-             <Card key={task._id} className="border-l-8 border-l-yellow-400 space-y-2">
+             <Card key={task._id} className="border-l-8 border-l-yellow-400 space-y-3">
                <h4 className="font-black uppercase">{task.title}</h4>
                <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
                  <Clock size={12} /> {isApproved
@@ -177,6 +190,15 @@ const ContributorDashboard = () => {
                      : 'Approved Applicant'
                    : 'Pending Response'}
                </p>
+               {isApproved && task.status === 'In Progress' && (
+                 <Button
+                   onClick={() => handleSubmitTask(task._id)}
+                   disabled={submittingTaskId === task._id}
+                   className="h-10 bg-green-500 px-4 py-0 text-xs text-black"
+                 >
+                   {submittingTaskId === task._id ? 'Sending...' : 'Mark Done'}
+                 </Button>
+               )}
              </Card>
            )})}
            {allTasks.filter((task) => {
