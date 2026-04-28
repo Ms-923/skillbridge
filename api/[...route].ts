@@ -13,7 +13,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const mod = await import('../server/app');
+    const mod = await import('../server/app.ts');
     return mod.default(req, res);
   } catch (error: any) {
     console.error('API bootstrap error:', error);
