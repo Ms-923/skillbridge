@@ -207,23 +207,26 @@ const OrganizationDashboard = () => {
                 <div className="flex items-center gap-2 font-black text-xs uppercase">
                    <Users size={16} /> {task.applicants?.length || 0} Applicants
                 </div>
-                {task.status === 'Open' ? (
-                   <Button
-                     variant="outline"
-                     className="h-10 text-xs px-4"
-                     onClick={() => setSelectedTaskId(selectedTaskId === task._id ? null : task._id)}
-                   >
-                     {selectedTaskId === task._id ? 'Hide Applicants' : 'Review Applicants'}
-                   </Button>
-                ) : (
-                  <Button onClick={async () => {
-                    await apiFetch(`/api/tasks/${task._id}/complete`, { method: 'POST' });
-                    fetchMyTasks();
-                  }} className="bg-green-400 text-black h-10 text-xs px-4">Mark Completed</Button>
-                )}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  {task.status !== 'Completed' && (
+                    <Button
+                      variant="outline"
+                      className="h-10 text-xs px-4"
+                      onClick={() => setSelectedTaskId(selectedTaskId === task._id ? null : task._id)}
+                    >
+                      {selectedTaskId === task._id ? 'Hide Applicants' : 'Review Applicants'}
+                    </Button>
+                  )}
+                  {task.status === 'In Progress' && (
+                    <Button onClick={async () => {
+                      await apiFetch(`/api/tasks/${task._id}/complete`, { method: 'POST' });
+                      fetchMyTasks();
+                    }} className="bg-green-400 text-black h-10 text-xs px-4">Mark Completed</Button>
+                  )}
+                </div>
               </div>
 
-              {selectedTaskId === task._id && task.status === 'Open' && (
+              {selectedTaskId === task._id && task.status !== 'Completed' && (
                 <div className="space-y-4 border-t-2 border-black pt-4">
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-black uppercase tracking-wide">Applicants</h4>
@@ -269,9 +272,15 @@ const OrganizationDashboard = () => {
                             <Button
                               className="h-10 w-full bg-blue-500 px-4 py-0 text-xs sm:w-auto"
                               onClick={() => handleApproveApplicant(task._id, applicant._id)}
-                              disabled={approvingApplicantId === applicant._id}
+                              disabled={task.status !== 'Open' || approvingApplicantId === applicant._id}
                             >
-                              {approvingApplicantId === applicant._id ? 'Approving...' : 'Approve Applicant'}
+                              {task.assignedTo?._id === applicant._id
+                                ? 'Approved'
+                                : approvingApplicantId === applicant._id
+                                  ? 'Approving...'
+                                  : task.status === 'Open'
+                                    ? 'Approve Applicant'
+                                    : 'Pending'}
                             </Button>
                           </div>
                         </div>

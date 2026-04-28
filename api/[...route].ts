@@ -195,7 +195,16 @@ export default async function handler(req: any, res: any) {
     }
 
     if (pathname === '/api/tasks' && method === 'GET') {
-      const tasks = await Task.find({ status: 'Open' })
+      const auth = getTokenPayload(req, jwt);
+      const scopedUserId = auth?.id || null;
+      const tasks = await Task.find(scopedUserId ? {
+        $or: [
+          { status: 'Open' },
+          { createdBy: scopedUserId },
+          { assignedTo: scopedUserId },
+          { applicants: scopedUserId },
+        ],
+      } : { status: 'Open' })
         .populate('createdBy', 'name')
         .populate('applicants', 'name email skills availability')
         .populate('assignedTo', 'name email');

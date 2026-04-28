@@ -103,7 +103,27 @@ app.put('/api/users/profile', authenticateToken, async (req: any, res) => {
 
 app.get('/api/tasks', async (req, res) => {
   try {
-    const tasks = await Task.find({ status: 'Open' })
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId: string | null = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        userId = decoded?.id || null;
+      } catch {
+        userId = null;
+      }
+    }
+
+    const tasks = await Task.find(userId ? {
+      $or: [
+        { status: 'Open' },
+        { createdBy: userId },
+        { assignedTo: userId },
+        { applicants: userId },
+      ],
+    } : { status: 'Open' })
       .populate('createdBy', 'name')
       .populate('applicants', 'name email skills availability')
       .populate('assignedTo', 'name email');

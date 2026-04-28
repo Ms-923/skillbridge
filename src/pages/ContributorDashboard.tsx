@@ -154,13 +154,36 @@ const ContributorDashboard = () => {
       <section className="space-y-6">
          <h2 className="text-3xl font-black uppercase tracking-tight">Active Applications</h2>
          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-           {allTasks.filter(t => t.applicants?.includes(user?.id)).map(task => (
+           {allTasks.filter((task) => {
+             const applicantIds = task.applicants?.map((applicant: any) =>
+               typeof applicant === 'string' ? applicant : applicant?._id
+             ) || [];
+             const assignedId =
+               typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+
+             return applicantIds.includes(user?.id) || assignedId === user?.id;
+           }).map(task => {
+             const assignedId =
+               typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+             const isApproved = assignedId === user?.id;
+
+             return (
              <Card key={task._id} className="border-l-8 border-l-yellow-400 space-y-2">
                <h4 className="font-black uppercase">{task.title}</h4>
-               <p className="text-xs font-bold text-gray-500 flex items-center gap-1"><Clock size={12} /> Pending Response</p>
+               <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                 <Clock size={12} /> {isApproved ? 'Approved Applicant' : 'Pending Response'}
+               </p>
              </Card>
-           ))}
-           {allTasks.filter(t => t.applicants?.includes(user?.id)).length === 0 && (
+           )})}
+           {allTasks.filter((task) => {
+             const applicantIds = task.applicants?.map((applicant: any) =>
+               typeof applicant === 'string' ? applicant : applicant?._id
+             ) || [];
+             const assignedId =
+               typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+
+             return applicantIds.includes(user?.id) || assignedId === user?.id;
+           }).length === 0 && (
              <p className="font-bold italic text-gray-400">No active applications. Explore the marketplace!</p>
            )}
          </div>
