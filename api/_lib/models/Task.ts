@@ -10,7 +10,7 @@ const taskSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   applicants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  status: { type: String, enum: ['Open', 'In Progress', 'Completed'], default: 'Open' },
+  status: { type: String, enum: ['Open', 'In Progress', 'Submitted', 'Completed'], default: 'Open' },
   createdAt: { type: Date, default: Date.now },
 });
 

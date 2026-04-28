@@ -103,7 +103,30 @@ app.put('/api/users/profile', authenticateToken, async (req: any, res) => {
 
 app.get('/api/tasks', async (req, res) => {
   try {
-    const tasks = await Task.find({ status: 'Open' }).populate('createdBy', 'name');
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    let userId: string | null = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        userId = decoded?.id || null;
+      } catch {
+        userId = null;
+      }
+    }
+
+    const tasks = await Task.find(userId ? {
+      $or: [
+        { status: 'Open' },
+        { createdBy: userId },
+        { assignedTo: userId },
+        { applicants: userId },
+      ],
+    } : { status: 'Open' })
+      .populate('createdBy', 'name')
+      .populate('applicants', 'name email skills availability')
+      .populate('assignedTo', 'name email');
     res.json(tasks);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
@@ -145,6 +168,25 @@ app.post('/api/tasks/:taskId/approve/:userId', authenticateToken, async (req: an
     }
     task.assignedTo = req.params.userId as any;
     task.status = 'In Progress';
+    await task.save();
+    res.json(task);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/tasks/:id/submit', authenticateToken, async (req: any, res) => {
+  if (req.user.role !== 'Contributor') return res.sendStatus(403);
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (!task.assignedTo || task.assignedTo.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    if (task.status !== 'In Progress') {
+      return res.status(400).json({ error: 'Only in-progress tasks can be submitted as done' });
+    }
+    task.status = 'Submitted';
     await task.save();
     res.json(task);
   } catch (err: any) {

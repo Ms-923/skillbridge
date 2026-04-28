@@ -171,7 +171,11 @@ const ContributorDashboard = () => {
              <Card key={task._id} className="border-l-8 border-l-yellow-400 space-y-2">
                <h4 className="font-black uppercase">{task.title}</h4>
                <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
-                 <Clock size={12} /> {isApproved ? 'Approved Applicant' : 'Pending Response'}
+                 <Clock size={12} /> {isApproved
+                   ? task.status === 'Submitted'
+                     ? 'Done Sent To Organization'
+                     : 'Approved Applicant'
+                   : 'Pending Response'}
                </p>
              </Card>
            )})}

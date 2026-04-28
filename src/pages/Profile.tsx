@@ -9,7 +9,9 @@ import { User, Mail, Briefcase, Clock, Plus, X } from 'lucide-react';
 const Profile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [assignedTasks, setAssignedTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submittingTaskId, setSubmittingTaskId] = useState<string | null>(null);
   const [newSkill, setNewSkill] = useState('');
   const [newInterest, setNewInterest] = useState('');
 
@@ -19,8 +21,17 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const data = await apiFetch('/api/users/profile');
+      const [data, tasks] = await Promise.all([
+        apiFetch('/api/users/profile'),
+        apiFetch('/api/tasks'),
+      ]);
       setProfile(data);
+      setAssignedTasks(tasks.filter((task: any) => {
+        const assignedId =
+          typeof task.assignedTo === 'string' ? task.assignedTo : task.assignedTo?._id;
+
+        return assignedId === user?.id;
+      }));
     } catch (err) {
       console.error(err);
     } finally {
@@ -53,6 +64,18 @@ const Profile = () => {
 
   const removeSkill = (skill: string) => {
     setProfile({ ...profile, skills: profile.skills.filter((s: string) => s !== skill) });
+  };
+
+  const handleSubmitTask = async (taskId: string) => {
+    try {
+      setSubmittingTaskId(taskId);
+      await apiFetch(`/api/tasks/${taskId}/submit`, { method: 'POST' });
+      fetchProfile();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSubmittingTaskId(null);
+    }
   };
 
   if (loading) return <div className="text-center py-20 font-black uppercase italic">Loading Profile...</div>;
@@ -126,6 +149,41 @@ const Profile = () => {
                   value={profile.interests.join(', ')}
                   onChange={(e) => setProfile({...profile, interests: e.target.value.split(',').map((i: string) => i.trim()).filter((i: string) => i)})}
                 />
+              </div>
+
+              <div className="space-y-4 border-t-2 border-black pt-8">
+                <label className="font-black uppercase">Assigned Tasks</label>
+                <div className="space-y-3">
+                  {assignedTasks.length ? assignedTasks.map((task: any) => (
+                    <div key={task._id} className="rounded-2xl border-2 border-black bg-gray-50 p-4">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-black uppercase">{task.title}</h3>
+                          <p className="text-xs font-bold text-gray-500">
+                            Status: {task.status === 'Submitted' ? 'Awaiting organization review' : task.status}
+                          </p>
+                        </div>
+                        {task.status === 'In Progress' ? (
+                          <Button
+                            onClick={() => handleSubmitTask(task._id)}
+                            disabled={submittingTaskId === task._id}
+                            className="h-10 bg-green-500 px-4 py-0 text-xs text-black"
+                          >
+                            {submittingTaskId === task._id ? 'Sending...' : 'Done'}
+                          </Button>
+                        ) : (
+                          <span className="rounded-full border-2 border-black bg-white px-3 py-2 text-[10px] font-black uppercase">
+                            {task.status === 'Submitted' ? 'Sent to organization' : task.status}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )) : (
+                    <p className="text-sm font-bold italic text-gray-400">
+                      No assigned tasks yet.
+                    </p>
+                  )}
+                </div>
               </div>
             </>
           ) : (

@@ -175,6 +175,25 @@ app.post('/api/tasks/:taskId/approve/:userId', authenticateToken, async (req: an
   }
 });
 
+app.post('/api/tasks/:id/submit', authenticateToken, async (req: any, res) => {
+  if (req.user.role !== 'Contributor') return res.sendStatus(403);
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    if (!task.assignedTo || task.assignedTo.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    if (task.status !== 'In Progress') {
+      return res.status(400).json({ error: 'Only in-progress tasks can be submitted as done' });
+    }
+    task.status = 'Submitted';
+    await task.save();
+    res.json(task);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.post('/api/tasks/:id/complete', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'Organization') return res.sendStatus(403);
   try {

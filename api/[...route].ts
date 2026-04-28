@@ -53,7 +53,7 @@ async function getRuntime() {
       createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
       applicants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
       assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      status: { type: String, enum: ['Open', 'In Progress', 'Completed'], default: 'Open' },
+      status: { type: String, enum: ['Open', 'In Progress', 'Submitted', 'Completed'], default: 'Open' },
       createdAt: { type: Date, default: Date.now },
     });
 
@@ -254,6 +254,24 @@ export default async function handler(req: any, res: any) {
       }
       task.assignedTo = approveMatch[2] as any;
       task.status = 'In Progress';
+      await task.save();
+      return sendJson(res, 200, task);
+    }
+
+    const submitMatch = pathname.match(/^\/api\/tasks\/([^/]+)\/submit$/);
+    if (submitMatch && method === 'POST') {
+      const auth = getTokenPayload(req, jwt);
+      if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
+      if (auth.role !== 'Contributor') return sendJson(res, 403, { error: 'Forbidden' });
+      const task = await Task.findById(submitMatch[1]);
+      if (!task) return sendJson(res, 404, { error: 'Task not found' });
+      if (!task.assignedTo || task.assignedTo.toString() !== auth.id) {
+        return sendJson(res, 403, { error: 'Not authorized' });
+      }
+      if (task.status !== 'In Progress') {
+        return sendJson(res, 400, { error: 'Only in-progress tasks can be submitted as done' });
+      }
+      task.status = 'Submitted';
       await task.save();
       return sendJson(res, 200, task);
     }

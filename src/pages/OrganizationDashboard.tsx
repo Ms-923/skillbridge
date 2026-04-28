@@ -197,7 +197,13 @@ const OrganizationDashboard = () => {
             <Card key={task._id} className="space-y-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <h3 className="text-xl font-extrabold uppercase tracking-tighter sm:text-2xl">{task.title}</h3>
-                <span className={`px-3 py-1 rounded-full border-2 border-black font-black text-[10px] uppercase ${task.status === 'Open' ? 'bg-blue-200' : 'bg-orange-200'}`}>
+                <span className={`px-3 py-1 rounded-full border-2 border-black font-black text-[10px] uppercase ${
+                  task.status === 'Open'
+                    ? 'bg-blue-200'
+                    : task.status === 'Submitted'
+                      ? 'bg-yellow-300'
+                      : 'bg-orange-200'
+                }`}>
                   {task.status}
                 </span>
               </div>
@@ -217,17 +223,24 @@ const OrganizationDashboard = () => {
                       {selectedTaskId === task._id ? 'Hide Applicants' : 'Review Applicants'}
                     </Button>
                   )}
-                  {task.status === 'In Progress' && (
+                  {(task.status === 'In Progress' || task.status === 'Submitted') && (
                     <Button onClick={async () => {
                       await apiFetch(`/api/tasks/${task._id}/complete`, { method: 'POST' });
                       fetchMyTasks();
-                    }} className="bg-green-400 text-black h-10 text-xs px-4">Mark Completed</Button>
+                    }} className="bg-green-400 text-black h-10 text-xs px-4">
+                      {task.status === 'Submitted' ? 'Confirm Completion' : 'Mark Completed'}
+                    </Button>
                   )}
                 </div>
               </div>
 
               {selectedTaskId === task._id && task.status !== 'Completed' && (
                 <div className="space-y-4 border-t-2 border-black pt-4">
+                  {task.status === 'Submitted' && (
+                    <div className="rounded-2xl border-2 border-black bg-yellow-100 px-4 py-3 text-xs font-black uppercase">
+                      The approved contributor marked this task as done.
+                    </div>
+                  )}
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-black uppercase tracking-wide">Applicants</h4>
                     <span className="rounded-full border-2 border-black bg-yellow-200 px-3 py-1 text-[10px] font-black uppercase">
