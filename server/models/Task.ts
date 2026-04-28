@@ -14,4 +14,5 @@ const taskSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export const Task = mongoose.model('Task', taskSchema);
+export const Task =
+  ((mongoose.models.Task as any) || mongoose.model('Task', taskSchema)) as any;
