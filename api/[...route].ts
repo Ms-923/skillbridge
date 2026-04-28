@@ -1,3 +1,5 @@
+import app from './_lib/app.ts';
+
 export default async function handler(req: any, res: any) {
   const url = String(req.url || '');
   const pathname = url.split('?')[0];
@@ -13,8 +15,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const mod = await import('./_lib/app');
-    return mod.default(req, res);
+    return app(req, res);
   } catch (error: any) {
     console.error('API bootstrap error:', error);
     return res.status(500).json({
