@@ -1,10 +1,5 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { User } from './_lib/models/User.ts';
-import { Task } from './_lib/models/Task.ts';
-import { connectToDatabase, getDatabaseStatus } from './_lib/db.ts';
-
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
+const MONGO_URI = process.env.MONGO_URI;
 
 function sendJson(res: any, status: number, payload: unknown) {
   res.statusCode = status;
@@ -26,7 +21,93 @@ async function readJsonBody(req: any) {
   return raw ? JSON.parse(raw) : {};
 }
 
-function getTokenPayload(req: any) {
+async function getRuntime() {
+  const [{ default: mongoose }, jwtModule, bcryptModule] = await Promise.all([
+    import('mongoose'),
+    import('jsonwebtoken'),
+    import('bcryptjs'),
+  ]);
+
+  const globalCache = globalThis as any;
+  if (!globalCache.__skillbridge_models__) {
+    const userSchema = new mongoose.Schema({
+      name: { type: String, required: true },
+      email: { type: String, required: true, unique: true },
+      password: { type: String, required: true },
+      role: { type: String, enum: ['Contributor', 'Organization'], required: true },
+      skills: [{ type: String }],
+      availability: { type: Number, default: 0 },
+      interests: [{ type: String }],
+      points: { type: Number, default: 0 },
+      badges: [{ type: String }],
+      createdAt: { type: Date, default: Date.now },
+    });
+
+    const taskSchema = new mongoose.Schema({
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      requiredSkills: [{ type: String }],
+      duration: { type: String, required: true },
+      impactLevel: { type: String, enum: ['Low', 'Medium', 'High'], required: true },
+      isMicroTask: { type: Boolean, default: false },
+      createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      applicants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      status: { type: String, enum: ['Open', 'In Progress', 'Completed'], default: 'Open' },
+      createdAt: { type: Date, default: Date.now },
+    });
+
+    globalCache.__skillbridge_models__ = {
+      User: (mongoose.models.User || mongoose.model('User', userSchema)) as any,
+      Task: (mongoose.models.Task || mongoose.model('Task', taskSchema)) as any,
+    };
+  }
+
+  mongoose.set('bufferCommands', false);
+
+  return {
+    mongoose,
+    jwt: (jwtModule as any).default || jwtModule,
+    bcrypt: (bcryptModule as any).default || bcryptModule,
+    User: globalCache.__skillbridge_models__.User,
+    Task: globalCache.__skillbridge_models__.Task,
+  };
+}
+
+async function connectToDatabase(runtime: any) {
+  if (!MONGO_URI || MONGO_URI === 'PASTE_ATLAS_CONNECTION_STRING') {
+    throw new Error('MONGO_URI is not configured');
+  }
+
+  const globalCache = globalThis as any;
+  if (runtime.mongoose.connection.readyState === 1) {
+    return runtime.mongoose;
+  }
+
+  if (!globalCache.__skillbridge_db_promise__) {
+    globalCache.__skillbridge_db_promise__ = runtime.mongoose.connect(MONGO_URI).catch((error: any) => {
+      globalCache.__skillbridge_db_promise__ = null;
+      throw error;
+    });
+  }
+
+  return globalCache.__skillbridge_db_promise__;
+}
+
+function getDatabaseStatus(runtime: any) {
+  return {
+    readyState: runtime.mongoose.connection.readyState,
+    status: {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting',
+    }[runtime.mongoose.connection.readyState] || 'unknown',
+    mongoUriSet: !!MONGO_URI && MONGO_URI !== 'PASTE_ATLAS_CONNECTION_STRING',
+  };
+}
+
+function getTokenPayload(req: any, jwt: any) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) {
@@ -55,10 +136,13 @@ export default async function handler(req: any, res: any) {
     });
   }
 
+  const runtime = await getRuntime();
+  const { User, Task, jwt, bcrypt } = runtime;
+
   try {
-    await connectToDatabase();
+    await connectToDatabase(runtime);
   } catch (error: any) {
-    const db = getDatabaseStatus();
+    const db = getDatabaseStatus(runtime);
     return sendJson(res, 503, {
       error: `Database is ${db.status}. Check MONGO_URI in your deployment environment.`,
       details: error?.message,
@@ -92,14 +176,14 @@ export default async function handler(req: any, res: any) {
     }
 
     if (pathname === '/api/users/profile' && method === 'GET') {
-      const auth = getTokenPayload(req);
+      const auth = getTokenPayload(req, jwt);
       if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
       const user = await User.findById(auth.id).select('-password');
       return sendJson(res, 200, user);
     }
 
     if (pathname === '/api/users/profile' && method === 'PUT') {
-      const auth = getTokenPayload(req);
+      const auth = getTokenPayload(req, jwt);
       if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
       const { skills, availability, interests } = await readJsonBody(req);
       const user = await User.findByIdAndUpdate(
@@ -116,7 +200,7 @@ export default async function handler(req: any, res: any) {
     }
 
     if (pathname === '/api/tasks' && method === 'POST') {
-      const auth = getTokenPayload(req);
+      const auth = getTokenPayload(req, jwt);
       if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
       if (auth.role !== 'Organization') return sendJson(res, 403, { error: 'Forbidden' });
       const body = await readJsonBody(req);
@@ -135,7 +219,7 @@ export default async function handler(req: any, res: any) {
 
     const applyMatch = pathname.match(/^\/api\/tasks\/([^/]+)\/apply$/);
     if (applyMatch && method === 'POST') {
-      const auth = getTokenPayload(req);
+      const auth = getTokenPayload(req, jwt);
       if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
       if (auth.role !== 'Contributor') return sendJson(res, 403, { error: 'Forbidden' });
       const task = await Task.findById(applyMatch[1]);
@@ -149,7 +233,7 @@ export default async function handler(req: any, res: any) {
 
     const approveMatch = pathname.match(/^\/api\/tasks\/([^/]+)\/approve\/([^/]+)$/);
     if (approveMatch && method === 'POST') {
-      const auth = getTokenPayload(req);
+      const auth = getTokenPayload(req, jwt);
       if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
       if (auth.role !== 'Organization') return sendJson(res, 403, { error: 'Forbidden' });
       const task = await Task.findById(approveMatch[1]);
@@ -164,7 +248,7 @@ export default async function handler(req: any, res: any) {
 
     const completeMatch = pathname.match(/^\/api\/tasks\/([^/]+)\/complete$/);
     if (completeMatch && method === 'POST') {
-      const auth = getTokenPayload(req);
+      const auth = getTokenPayload(req, jwt);
       if (!auth) return sendJson(res, 401, { error: 'Unauthorized' });
       if (auth.role !== 'Organization') return sendJson(res, 403, { error: 'Forbidden' });
       const task = await Task.findById(completeMatch[1]);
