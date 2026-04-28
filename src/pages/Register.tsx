@@ -28,9 +28,9 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center py-20">
+    <div className="flex items-center justify-center py-8 sm:py-12 md:py-20">
       <Card className="w-full max-w-lg space-y-6">
-        <h1 className="text-4xl font-black uppercase tracking-tighter text-center">Create Account</h1>
+        <h1 className="text-center text-3xl font-black uppercase tracking-tighter sm:text-4xl">Create Account</h1>
         {error && <div className="bg-red-200 border-2 border-black p-3 font-bold text-sm text-red-700">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -55,7 +55,7 @@ const Register = () => {
           </div>
           <div className="space-y-4 pt-2">
             <label className="font-bold uppercase text-xs block">Choose Your Role</label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => setForm({...form, role: 'Contributor'})}

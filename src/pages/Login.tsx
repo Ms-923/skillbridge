@@ -29,9 +29,9 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center py-20">
+    <div className="flex items-center justify-center py-8 sm:py-12 md:py-20">
       <Card className="w-full max-w-md space-y-6">
-        <h1 className="text-4xl font-black uppercase tracking-tighter text-center">Welcome Back</h1>
+        <h1 className="text-center text-3xl font-black uppercase tracking-tighter sm:text-4xl">Welcome Back</h1>
         {error && <div className="bg-red-200 border-2 border-black p-3 font-bold text-sm text-red-700">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

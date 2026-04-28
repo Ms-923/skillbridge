@@ -92,24 +92,24 @@ const OrganizationDashboard = () => {
 
   return (
     <div className="space-y-12">
-      <div className="flex justify-between items-center bg-white text-black p-8 rounded-[32px] border-2 border-black shadow-[8px_8px_0px_#000]">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-[32px] border-2 border-black bg-white p-5 text-black shadow-[8px_8px_0px_#000] sm:p-8 md:flex-row md:items-center">
         <div>
-          <h1 className="text-4xl font-extrabold uppercase tracking-tighter">Org Dashboard</h1>
+          <h1 className="text-3xl font-extrabold uppercase tracking-tighter sm:text-4xl">Org Dashboard</h1>
           <p className="font-bold text-gray-500 text-sm">Manage your tasks and find the best talent.</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="bg-black text-white h-14 px-8 text-lg">
+        <Button onClick={() => setShowForm(!showForm)} className="h-12 w-full bg-black px-6 text-base text-white sm:h-14 sm:w-auto sm:px-8 sm:text-lg">
           {showForm ? 'Close Form' : <><Plus className="mr-2" size={18} /> Post New Task</>}
         </Button>
       </div>
 
       {showForm && (
         <Card className="space-y-6">
-          <div className="flex justify-between items-center border-b-2 border-black pb-4">
-             <h2 className="text-3xl font-extrabold uppercase tracking-tighter">Create New Task</h2>
-             <div className="flex gap-2">
+          <div className="flex flex-col gap-4 border-b-2 border-black pb-4 lg:flex-row lg:items-center lg:justify-between">
+             <h2 className="text-2xl font-extrabold uppercase tracking-tighter sm:text-3xl">Create New Task</h2>
+             <div className="flex flex-col gap-2 sm:flex-row">
                <Input 
                  placeholder="Enter mission goal for AI generation..." 
-                 className="w-64 h-10 text-xs" 
+                 className="h-10 w-full text-xs sm:w-64" 
                  value={goal}
                  onChange={(e) => setGoal(e.target.value)}
                />
@@ -118,7 +118,7 @@ const OrganizationDashboard = () => {
                </Button>
              </div>
           </div>
-          <form onSubmit={handleCreateTask} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleCreateTask} className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="font-black uppercase text-xs">Task Title</label>
@@ -142,7 +142,7 @@ const OrganizationDashboard = () => {
                 <label className="font-black uppercase text-xs">Required Skills (comma separated)</label>
                 <Input value={form.requiredSkills} onChange={e => setForm({...form, requiredSkills: e.target.value})} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="font-black uppercase text-xs">Duration</label>
                   <Input value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} placeholder="e.g. 5 days" required />
@@ -160,7 +160,7 @@ const OrganizationDashboard = () => {
                   </select>
                 </div>
               </div>
-              <div className="flex items-center gap-4 pt-6">
+              <div className="flex flex-col items-stretch gap-4 pt-6 sm:flex-row sm:items-center">
                 <button 
                   type="button" 
                   onClick={() => setForm({...form, isMicroTask: !form.isMicroTask})}
@@ -177,18 +177,18 @@ const OrganizationDashboard = () => {
 
       <div className="space-y-6">
         <h2 className="text-3xl font-black uppercase tracking-tight">Active Job Postings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           {tasks.map(task => (
             <Card key={task._id} className="space-y-4">
-              <div className="flex justify-between items-start">
-                <h3 className="text-2xl font-extrabold uppercase tracking-tighter">{task.title}</h3>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <h3 className="text-xl font-extrabold uppercase tracking-tighter sm:text-2xl">{task.title}</h3>
                 <span className={`px-3 py-1 rounded-full border-2 border-black font-black text-[10px] uppercase ${task.status === 'Open' ? 'bg-blue-200' : 'bg-orange-200'}`}>
                   {task.status}
                 </span>
               </div>
               <p className="font-bold text-gray-600 line-clamp-2">{task.description}</p>
               
-              <div className="flex justify-between items-center pt-4 border-t-2 border-black">
+              <div className="flex flex-col gap-3 border-t-2 border-black pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 font-black text-xs uppercase">
                    <Users size={16} /> {task.applicants?.length || 0} Applicants
                 </div>

@@ -58,8 +58,8 @@ const Profile = () => {
   if (loading) return <div className="text-center py-20 font-black uppercase italic">Loading Profile...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <h1 className="text-5xl font-black uppercase tracking-tighter">Your Profile</h1>
+    <div className="mx-auto max-w-4xl space-y-8">
+      <h1 className="text-3xl font-black uppercase tracking-tighter sm:text-4xl md:text-5xl">Your Profile</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Sidebar Info */}
@@ -97,7 +97,7 @@ const Profile = () => {
                     </span>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                    <Input 
                      placeholder="Add skill (e.g. React, UX Design)" 
                      value={newSkill}
@@ -135,8 +135,8 @@ const Profile = () => {
              </div>
           )}
 
-          <div className="pt-8 border-t-2 border-black flex justify-end">
-             <Button onClick={handleUpdate} className="h-14 px-12 text-lg">Save Profile Changes</Button>
+          <div className="flex justify-stretch border-t-2 border-black pt-8 sm:justify-end">
+             <Button onClick={handleUpdate} className="h-14 w-full px-8 text-base sm:w-auto sm:px-12 sm:text-lg">Save Profile Changes</Button>
           </div>
         </Card>
       </div>

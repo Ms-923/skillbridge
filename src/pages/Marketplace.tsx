@@ -49,13 +49,13 @@ const Marketplace = () => {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 bg-yellow-400 border-4 border-black p-8 rounded-[32px] shadow-[8px_8px_0px_#000]">
+      <div className="flex flex-col gap-6 rounded-[32px] border-4 border-black bg-yellow-400 p-5 shadow-[8px_8px_0px_#000] md:flex-row md:items-end md:justify-between md:p-8">
         <div className="space-y-4 max-w-xl">
-          <h1 className="text-5xl font-extrabold uppercase tracking-tighter">Task Marketplace</h1>
+          <h1 className="text-3xl font-extrabold uppercase tracking-tighter sm:text-4xl md:text-5xl">Task Marketplace</h1>
           <p className="font-bold">Find meaningful work that matches your skills. Filter by impact or micro-tasks.</p>
         </div>
-        <div className="flex flex-wrap gap-4 w-full md:w-auto">
-          <div className="relative flex-grow md:flex-grow-0">
+        <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:flex-wrap">
+          <div className="relative w-full md:w-auto md:flex-grow-0">
              <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={18} />
              <Input 
                className="pl-12 w-full md:w-64 border-b-4" 
@@ -65,7 +65,7 @@ const Marketplace = () => {
              />
           </div>
           <select 
-            className="h-12 rounded-3xl border-2 border-black bg-white px-4 font-bold focus:outline-none"
+            className="h-12 w-full rounded-3xl border-2 border-black bg-white px-4 font-bold focus:outline-none md:w-auto"
             value={filter.impact}
             onChange={(e) => setFilter({...filter, impact: e.target.value})}
           >
@@ -76,7 +76,7 @@ const Marketplace = () => {
           </select>
           <button 
              onClick={() => setFilter({...filter, micro: !filter.micro})}
-             className={`flex items-center gap-2 h-12 px-6 rounded-2xl border-2 border-black font-extrabold uppercase transition-all shadow-[4px_4px_0px_#000] active:translate-y-1 active:shadow-none ${filter.micro ? 'bg-black text-white' : 'bg-white text-black'}`}
+             className={`flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-black px-6 font-extrabold uppercase transition-all shadow-[4px_4px_0px_#000] active:translate-y-1 active:shadow-none md:w-auto ${filter.micro ? 'bg-black text-white' : 'bg-white text-black'}`}
           >
             <Zap size={16} /> Micro-tasks
           </button>
@@ -91,8 +91,8 @@ const Marketplace = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredTasks.length > 0 ? filteredTasks.map((task) => (
             <Card key={task._id} className="flex flex-col h-full hover:-translate-y-2 transition-transform cursor-pointer group">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex gap-2">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-wrap gap-2">
                   <span className={`px-2 py-1 rounded-sm text-[10px] font-black uppercase border border-black shadow-[2px_2px_0px_#000] ${
                     task.impactLevel === 'High' ? 'bg-red-400' : task.impactLevel === 'Medium' ? 'bg-orange-400' : 'bg-green-400'
                   }`}>
@@ -117,10 +117,10 @@ const Marketplace = () => {
                     <span key={s} className="bg-gray-100 border border-black px-2 py-1 text-[10px] font-black uppercase">{s}</span>
                   ))}
                 </div>
-                <div className="pt-4 border-t-2 border-black flex items-center justify-between">
+                <div className="flex flex-col gap-3 border-t-2 border-black pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs font-bold italic">By {task.createdBy?.name}</span>
                   {user?.role === 'Contributor' && (
-                    <Button onClick={() => handleApply(task._id)} className="h-10 px-4 py-0 bg-blue-500">Apply Now</Button>
+                    <Button onClick={() => handleApply(task._id)} className="h-10 w-full px-4 py-0 bg-blue-500 sm:w-auto">Apply Now</Button>
                   )}
                 </div>
               </div>

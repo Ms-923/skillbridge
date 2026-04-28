@@ -52,20 +52,20 @@ const ContributorDashboard = () => {
   return (
     <div className="space-y-12">
       {/* Welcome & Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         <Card className="lg:col-span-2 bg-blue-500 text-white flex flex-col justify-between border-2 shadow-[4px_4px_0px_#000]">
           <div className="space-y-4">
-            <h1 className="text-5xl font-extrabold uppercase tracking-tighter">Welcome, {profile.name}!</h1>
+            <h1 className="text-3xl font-extrabold uppercase tracking-tighter sm:text-4xl md:text-5xl">Welcome, {profile.name}!</h1>
             <p className="font-bold text-blue-100 italic">Ready to make an impact today? Your skills are in high demand.</p>
           </div>
-          <div className="flex gap-4 pt-8">
+          <div className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2 sm:pt-8">
              <div className="bg-black p-4 rounded-2xl border-2 border-white shadow-[4px_4px_0px_#fff]">
                 <p className="text-[10px] uppercase font-bold opacity-60">Total Points</p>
-                <div className="text-4xl font-extrabold tracking-tighter">{profile.points} <span className="text-sm">PTS</span></div>
+                <div className="text-3xl font-extrabold tracking-tighter sm:text-4xl">{profile.points} <span className="text-sm">PTS</span></div>
              </div>
              <div className="bg-yellow-300 text-black p-4 rounded-2xl border-2 border-black shadow-[4px_4px_0px_#000]">
                 <p className="text-[10px] uppercase font-bold opacity-60">Availability</p>
-                <div className="text-4xl font-extrabold tracking-tighter">{profile.availability} <span className="text-sm">H/WK</span></div>
+                <div className="text-3xl font-extrabold tracking-tighter sm:text-4xl">{profile.availability} <span className="text-sm">H/WK</span></div>
              </div>
           </div>
         </Card>
@@ -87,23 +87,23 @@ const ContributorDashboard = () => {
 
       {/* AI Recommendations */}
       <section className="space-y-6">
-        <div className="flex justify-between items-center px-2">
+        <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
            <h2 className="text-2xl font-extrabold tracking-tighter uppercase">AI Recommendations</h2>
            <span className="text-[10px] font-bold bg-purple-400 px-3 py-1 border-2 border-black rounded-full uppercase">Powered by Gemini</span>
         </div>
         
-        <div className="flex justify-end">
+        <div className="flex justify-stretch sm:justify-end">
            <Button 
             onClick={handleAiRecommend} 
             disabled={aiLoading} 
-            className="bg-black text-white px-6 py-2 rounded-xl text-xs font-bold"
+            className="w-full bg-black text-white px-6 py-2 rounded-xl text-xs font-bold sm:w-auto"
            >
              <Sparkles size={14} className="mr-2" /> {aiLoading ? 'Thinking...' : 'Refresh Matches'}
            </Button>
         </div>
 
         {recommendations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
             <div className="space-y-4">
               {recommendations.map((rec: any, i: number) => {
                 const task = allTasks.find(t => t._id === rec.taskId);
@@ -142,7 +142,7 @@ const ContributorDashboard = () => {
             </Card>
           </div>
         ) : (
-          <div className="border-4 border-black border-dashed rounded-3xl p-20 text-center space-y-4 bg-gray-50">
+          <div className="border-4 border-black border-dashed rounded-3xl bg-gray-50 p-8 text-center space-y-4 sm:p-12 md:p-20">
              <Sparkles size={48} className="mx-auto text-purple-400" />
              <p className="font-bold text-xl">Let Gemini AI find the perfect tasks for your skillset.</p>
              <Button onClick={handleAiRecommend} variant="outline" className="h-14 px-8">Run AI Matchmaker</Button>
@@ -153,7 +153,7 @@ const ContributorDashboard = () => {
       {/* Applied Tasks */}
       <section className="space-y-6">
          <h2 className="text-3xl font-black uppercase tracking-tight">Active Applications</h2>
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
            {allTasks.filter(t => t.applicants?.includes(user?.id)).map(task => (
              <Card key={task._id} className="border-l-8 border-l-yellow-400 space-y-2">
                <h4 className="font-black uppercase">{task.title}</h4>
